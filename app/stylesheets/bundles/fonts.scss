@@ -39,6 +39,16 @@ $fonts: (
         (italic 700): 'balsamiq_sans/BalsamiqSans-BoldItalic',
     )
   ),
+  'Inter': (
+    // Balsamiq Sans has undesired glyphs for 2768-2775 (inclusive)
+    // Therefore that range is excluded
+    "faces": (
+        (normal 400): 'inter/Inter-Regular',
+        (italic 400): 'inter/Inter-Italic',
+        (normal 700): 'inter/Inter-Bold',
+        (italic 700): 'inter/Inter-BoldItalic',
+    )
+  ),
   'Architects Daughter': (
     "faces": (
         (normal 400): 'architects_daughter/ArchitectsDaughter-Regular',
