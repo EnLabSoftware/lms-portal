@@ -1,17 +1,17 @@
 <%
 # Copyright (C) 2011 - present Instructure, Inc.
-#
+
 # This file is part of Canvas.
-#
+
 # Canvas is free software: you can redistribute it and/or modify it under
 # the terms of the GNU Affero General Public License as published by the Free
 # Software Foundation, version 3 of the License.
-#
+
 # Canvas is distributed in the hope that it will be useful, but WITHOUT ANY
 # WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
 # A PARTICULAR PURPOSE. See the GNU Affero General Public License for more
 # details.
-#
+
 # You should have received a copy of the GNU Affero General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 %>
@@ -172,18 +172,6 @@
     <td></td>
     <td> <%= render partial: 'shared/maintenance_window', locals: { database_server: @user.shard.database_server, local_zone: ::Time.zone } %> </td>
   </tr>
-  <% end %>
-  <% if @domain_root_account == Account.default %>
-    <tr>
-      <td colspan="2">
-        <div class="edit_data">
-          <label for="user_subscribe_to_emails" class="checkbox">
-            <%= f.check_box :subscribe_to_emails %>
-            <%= t(:subscribe_to_emails, "I want to receive information, news and tips from Instructure") %>
-          </label>
-        </div>
-      </td>
-    </tr>
   <% end %>
   <% if !@password_pseudonyms.empty? %>
   <tr class="edit_data_row select_change_password_row" style="display: none;">
