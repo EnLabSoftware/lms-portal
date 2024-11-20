@@ -17,10 +17,9 @@
 
 import React from 'react'
 import ReactDOM from 'react-dom'
-import {Flex} from '@instructure/ui-flex'
-import {Button} from '@instructure/ui-buttons'
+import {IconButton} from '@instructure/ui-buttons'
 import {Tooltip} from '@instructure/ui-tooltip'
-import {IconMiniArrowEndLine, IconMiniArrowStartLine} from '@instructure/ui-icons'
+import {IconArrowEndLine, IconArrowStartLine} from '@instructure/ui-icons'
 import $ from 'jquery'
 import {find} from 'lodash'
 import template from '../jst/ModuleSequenceFooter.handlebars'
@@ -99,16 +98,22 @@ $.fn.moduleSequenceFooter = function (options = {}) {
         ReactDOM.render(
           <Tooltip
             aria-label={label}
-            as={Button}
-            href={this.msfInstance.previous.url}
             renderTip={this.msfInstance.previous.tooltip}
             placement="end"
             offsetX={5}
             disabled={Boolean(this.msfInstance.previous.modules_tab_disabled)}
           >
-            <Flex alignItems="center">
-              <IconMiniArrowStartLine /> {I18n.t('Previous')}
-            </Flex>
+            <IconButton
+             shape="circle"
+             screenReaderLabel="Previous"
+             href={this.msfInstance.previous.url}
+             themeOverride={{
+              secondaryBackground: "#696969",
+              secondaryHoverBackground: "#5e5e5e"
+             }}
+            >
+              <IconArrowStartLine color="primary-inverse" />
+            </IconButton>
           </Tooltip>,
           previousButton
         )
@@ -122,16 +127,22 @@ $.fn.moduleSequenceFooter = function (options = {}) {
         ReactDOM.render(
           <Tooltip
             aria-label={label}
-            as={Button}
-            href={this.msfInstance.next.url}
             renderTip={this.msfInstance.next.tooltip}
             placement="start"
             offsetX={5}
             disabled={Boolean(this.msfInstance.next.modules_tab_disabled)}
           >
-            <Flex alignItems="center">
-              {I18n.t('Next')} <IconMiniArrowEndLine />
-            </Flex>
+            <IconButton
+             shape="circle"
+             screenReaderLabel="Next"
+             href={this.msfInstance.next.url}
+             themeOverride={{
+              secondaryBackground: "#696969",
+              secondaryHoverBackground: "#5e5e5e"
+             }}
+             >
+              <IconArrowEndLine color="primary-inverse" />
+            </IconButton>
           </Tooltip>,
           nextButton
         )
