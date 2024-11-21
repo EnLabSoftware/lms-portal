@@ -79,6 +79,7 @@ export default class WikiPageView extends Backbone.View {
   }
 
   initialize() {
+
     this.model.on('change', () => this.render())
     super.initialize(...arguments)
     if (!this.WIKI_RIGHTS) this.WIKI_RIGHTS = {}
@@ -179,6 +180,9 @@ export default class WikiPageView extends Backbone.View {
       this.$sequenceFooter.msfAnimation(false)
     }
     if (this.$sequenceFooter) this.$sequenceFooter.appendTo($('#module_navigation_target'))
+
+    this.$courseOutline.moduleCourseOutline({})
+    this.$courseOutline.appendTo($('#module_course_outline'))
 
     this.maybeRenderBlockEditorContent()
   }

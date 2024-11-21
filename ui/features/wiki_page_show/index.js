@@ -25,6 +25,7 @@ import WikiPageView from './backbone/views/WikiPageView'
 import MarkAsDone from '@canvas/util/jquery/markAsDone'
 import LockManager from '@canvas/blueprint-courses/react/components/LockManager/index'
 import '@canvas/module-sequence-footer'
+import '@canvas/module-course-outline'
 
 $('body').addClass('show')
 
@@ -35,6 +36,8 @@ ready(() => {
   $('#content').on('click', '#mark-as-done-checkbox', function () {
     MarkAsDone.toggle(this)
   })
+
+  $('#module_course_outline').moduleCourseOutline({})
 
   const wikiPage = new WikiPage(ENV.WIKI_PAGE, {
     revision: ENV.WIKI_PAGE_REVISION,
