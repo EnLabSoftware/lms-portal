@@ -330,7 +330,8 @@ Rails.application.config.to_prepare do
         account_only: :root,
         true_for: [
           "AccountAdmin"
-        ]
+        ],
+        account_allows: ->(a) { Feature.exists?(:enable_dsr_requests) && a.feature_enabled?(:enable_dsr_requests) }
       },
       manage_user_observers: {
         label: -> { I18n.t("permissions.manage_user_observers", "Manage observers for users") },
@@ -1205,6 +1206,7 @@ Rails.application.config.to_prepare do
         ],
         true_for: %w[TeacherEnrollment AccountAdmin],
         acts_as_access_token_scope: true,
+        account_allows: ->(a) { a.feature_allowed?(:differentiation_tags) }
       },
       manage_tags_manage: {
         label: -> { I18n.t("Manage Differentiated Tags") },
@@ -1220,6 +1222,7 @@ Rails.application.config.to_prepare do
         ],
         true_for: %w[TeacherEnrollment AccountAdmin],
         acts_as_access_token_scope: true,
+        account_allows: ->(a) { a.feature_allowed?(:differentiation_tags) }
       },
       manage_tags_delete: {
         label: -> { I18n.t("Delete Differentiated Tags") },
@@ -1235,6 +1238,7 @@ Rails.application.config.to_prepare do
         ],
         true_for: %w[TeacherEnrollment AccountAdmin],
         acts_as_access_token_scope: true,
+        account_allows: ->(a) { a.feature_allowed?(:differentiation_tags) }
       },
       manage_interaction_alerts: {
         label: -> { I18n.t("permissions.manage_interaction_alerts", "Manage alerts") },

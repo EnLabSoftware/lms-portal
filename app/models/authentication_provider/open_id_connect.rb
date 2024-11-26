@@ -84,6 +84,7 @@ class AuthenticationProvider
           header: -> { t("Header") },
           claims: -> { t("Claims") },
           userinfo: -> { t("Userinfo") },
+          validation_error: -> { t("Validation error") }
         }]
       end
 
@@ -107,8 +108,6 @@ class AuthenticationProvider
     alias_attribute :issuer, :idp_entity_id
 
     def generate_authorize_url(redirect_uri, state, nonce:, **authorize_options)
-      return super unless self.class.always_validate? || account.feature_enabled?(:oidc_full_token_validation)
-
       client.auth_code.authorize_url({ redirect_uri:, state:, nonce: }
                                      .merge(self.authorize_options)
                                      .merge(authorize_options))
@@ -244,11 +243,11 @@ class AuthenticationProvider
     def validate_signature(token)
       tries ||= 1
       if token.alg&.to_sym == :none
-        return "Token is not signed"
+        return t("Token is not signed")
       elsif token.send(:hmac?)
         token.verify!(client_secret)
       elsif (jwks = self.jwks).nil?
-        return "No JWKS available to validate signature"
+        return t("No JWKS available to validate signature")
       else
         token.verify!(jwks)
       end
@@ -309,14 +308,34 @@ class AuthenticationProvider
     end
 
     def download_discovery
+      discovery_url = self.discovery_url
+      download = discovery_url.present? && discovery_url_changed?
+
+      # infer the discovery url from the issuer if possible
+      if discovery_url.blank? && issuer_changed? && issuer.present?
+        download = true
+        discovery_url = issuer
+        discovery_url = discovery_url[0...-1] if discovery_url.end_with?("/")
+        discovery_url += "/.well-known/openid-configuration"
+      end
+
       return if discovery_url.blank?
-      return unless discovery_url_changed?
+      return unless download
 
       begin
         populate_from_discovery_url(discovery_url)
+        # we may have inferred the discovery url from the issuer, so
+        # make sure it's assigned
+        self.discovery_url = discovery_url
       rescue => e
-        ::Canvas::Errors.capture_exception(:oidc_discovery_refresh, e)
-        errors.add(:discovery_url, e.message)
+        # only record an error for an explicit discovery url
+        unless self.discovery_url.blank?
+          ::Canvas::Errors.capture_exception(:oidc_discovery_refresh, e)
+          # JSON parse errors can include an entire HTML document;
+          # don't show it all
+          message = e.is_a?(JSON::ParserError) ? t("Invalid JSON") : e.message
+          errors.add(:discovery_url, message)
+        end
       end
     end
 
@@ -347,36 +366,61 @@ class AuthenticationProvider
 
         if self.class.always_validate? || account.feature_enabled?(:oidc_full_token_validation)
           unless (missing_claims = %w[aud iss iat exp nonce] - id_token.keys).empty?
-            raise OAuthValidationError, "Missing claim#{"s" if missing_claims.length > 1} #{missing_claims.join(", ")}"
+            raise OAuthValidationError, t({ one: "Missing claim %{claims}", other: "Missing claims %{claims}" },
+                                          count: missing_claims.length,
+                                          claims: missing_claims.join(", "))
           end
 
-          unless id_token["aud"] == client_id
-            raise OAuthValidationError, "Invalid JWT audience: #{id_token["aud"].inspect}"
+          unless Array(id_token["aud"]).include?(client_id)
+            raise OAuthValidationError, t("Invalid JWT audience: %{audience}", audience: id_token["aud"].inspect)
           end
 
           if self.class.validate_issuer?
             if issuer.blank?
-              raise OAuthValidationError, "No issuer configured for OpenID Connect provider"
+              raise OAuthValidationError, t("No issuer configured for OpenID Connect provider")
             end
             unless issuer === id_token["iss"] # rubocop:disable Style/CaseEquality may be a string or a RegEx
-              raise OAuthValidationError, "Invalid JWT issuer: #{id_token["iss"]}"
+              raise OAuthValidationError, t("Invalid JWT issuer: %{issuer}", issuer: id_token["iss"])
             end
           end
           unless id_token["nonce"] == token.options[:nonce]
-            raise OAuthValidationError, "Invalid nonce claim in ID Token"
+            raise OAuthValidationError, t("Invalid nonce claim in ID Token")
           end
 
           if (signature_error = validate_signature(id_token))
-            raise OAuthValidationError, "Invalid signature: #{signature_error}"
+            raise OAuthValidationError, t("Invalid signature: %{signature_error}", signature_error:)
           end
         elsif id_token != {}
+          missing_claims_persisted = settings["missing_claims"] ||= []
+          missing_claims = %w[aud iss iat exp nonce] - id_token.keys
+          missing_claims_persisted.replace(missing_claims_persisted | missing_claims)
+
+          audiences = settings["known_audiences"] ||= []
+          if audiences.length < 20 && !audiences.include?(id_token["aud"])
+            audiences << id_token["aud"]
+          end
+
           issuers = settings["known_issuers"] ||= []
           if issuers.length < 20 && !issuers.include?(id_token["iss"])
             issuers << id_token["iss"]
           end
-          alg = id_token.alg&.to_sym
+          alg = id_token.alg&.to_s
           algs = settings["known_signature_algorithms"] ||= []
           algs << alg if algs.length < 20 && !algs.include?(alg)
+
+          nonce_valid_list = settings["nonce_valid"] ||= []
+          nonce_valid = id_token["nonce"] == token.options[:nonce]
+          nonce_valid_list << nonce_valid unless nonce_valid_list.include?(nonce_valid)
+
+          # validate the signature if we have enough information
+          sigs_valid_list = settings["sigs_valid"] ||= []
+          if id_token.send(:hmac?)
+            sig_valid = !!validate_signature(id_token) if client_secret
+          elsif id_token.alg&.to_sym != :none && jwks_uri
+            sig_valid = !!validate_signature(id_token)
+          end
+          sigs_valid_list << sig_valid unless sigs_valid_list.include?(sig_valid)
+
           save! if changed?
         end
 

@@ -77,6 +77,22 @@ module Types
       end
     end
 
+    # this is a temporary fix for discussion, it should be efficiently paginated asap
+    field :groups, [GroupType], null: true
+
+    def groups
+      Loaders::AssociationLoader.for(GroupCategory, :context).load(set).then do
+        # this permission matches the REST api, but is probably too strict.
+        # students are able to see groups in the canvas ui, so probably should
+        # be able to see them here too
+        if set.context.grants_any_right?(current_user, :manage_groups, *RoleOverride::GRANULAR_MANAGE_GROUPS_PERMISSIONS)
+          set.groups.active.by_name
+        else
+          nil
+        end
+      end
+    end
+
     field :current_group, GroupType, null: true
     def current_group
       load_association(:groups).then do
