@@ -206,6 +206,9 @@ $(() => {
       assetType: 'Assignment',
       assetID: ENV.ASSIGNMENT_ID,
       location: window.location,
+      onFetchSuccess: () => {
+        $('.module-sequence-footer-content').css("cssText", "padding: 0 !important;")
+      },
     })
   })
 

@@ -58,6 +58,9 @@ ready(() => {
     assetType: 'Quiz',
     assetID: ENV.QUIZ.id,
     location: window.location,
+    onFetchSuccess: () => {
+      $('.module-sequence-footer-content').css("cssText", "padding: 0 !important;")
+    },
   })
 })
 

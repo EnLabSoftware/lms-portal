@@ -35,7 +35,10 @@ $bar-height: 64px;
   background: $ic-color-light;
   // border-top: 1px solid $ic-border-light;
   box-sizing: border-box;
-  padding-top: $ic-sp;
+  padding: $ic-sp $ic-sp 0;
+  @include breakpoint(desktop) {
+    padding: direction-sides($ic-sp $ic-sp * 2 0 $ic-sp);
+  }
 }
 
 .module-sequence-footer .module-sequence-footer-content a {

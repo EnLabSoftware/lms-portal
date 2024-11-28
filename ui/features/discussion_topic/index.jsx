@@ -306,6 +306,9 @@ ready(() => {
         assetType: ENV.DISCUSSION.SEQUENCE.ASSET_TYPE,
         assetID: ENV.DISCUSSION.SEQUENCE.ASSET_ID,
         courseID: ENV.DISCUSSION.SEQUENCE.COURSE_ID,
+        onFetchSuccess: () => {
+          $('.module-sequence-footer-content').css("cssText", "padding: 0 !important;")
+        },
       })
     })
   }

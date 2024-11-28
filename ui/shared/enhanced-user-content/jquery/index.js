@@ -534,6 +534,9 @@ function doThingsToModuleSequenceFooter() {
           courseID: el.attr('data-course-id'),
           assetType: el.attr('data-asset-type'),
           assetID: el.attr('data-asset-id'),
+          onFetchSuccess: () => {
+            $('.module-sequence-footer-content').css("cssText", "padding: 0 !important;")
+          },
         })
       })
       .catch(ex => {

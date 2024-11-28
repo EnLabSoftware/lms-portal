@@ -179,6 +179,9 @@ ready(() => {
       assetType: 'Lti',
       assetID: ENV.LTI.SEQUENCE.ASSET_ID,
       courseID: ENV.LTI.SEQUENCE.COURSE_ID,
+      onFetchSuccess: () => {
+        $('.module-sequence-footer-content').css("cssText", "padding: 0 !important;")
+      },
     })
   }
 
